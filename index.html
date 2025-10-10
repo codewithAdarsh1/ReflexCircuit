@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reflex Duel</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* Global styling */
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: #222;
+        color: #f8f8f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        text-align: center;
+        padding: 20px;
+      }
+
+      header .logo {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 40px;
+        color: #76f7ff;
+      }
+      header .logo span {
+        color: white;
+      }
+
+      /* The reaction ball */
+      .ball {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: #ff4d4d; /* default red */
+        margin: 0 auto 40px;
+        box-shadow: 0 0 20px rgba(255, 77, 77, 0.7);
+        transition: background 0.3s ease, box-shadow 0.3s ease,
+          transform 0.2s ease;
+      }
+
+      /* Pulsing animation for red "loading" */
+      @keyframes pulseRed {
+        0% {
+          box-shadow: 0 0 15px rgba(255, 77, 77, 0.6);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow: 0 0 35px rgba(255, 50, 50, 1);
+          transform: scale(1.05);
+        }
+        100% {
+          box-shadow: 0 0 15px rgba(255, 77, 77, 0.6);
+          transform: scale(1);
+        }
+      }
+      .ball.loading {
+        animation: pulseRed 1s infinite;
+      }
+
+      .players {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .player-card {
+        background: #333;
+        padding: 20px;
+        border-radius: 12px;
+        width: 150px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+      }
+
+      .player-card h2 {
+        margin-bottom: 10px;
+      }
+
+      .keycap {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #444;
+        border-radius: 6px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 8px 0;
+        color: #76f7ff;
+        border: 1px solid #555;
+      }
+
+      .time {
+        margin-top: 10px;
+        font-size: 1rem;
+        color: #76f7ff;
+        font-weight: bold;
+      }
+
+      .display-result {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+      }
+      .hidden {
+        display: none;
+      }
+
+      .controls .start-btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        background: #76f7ff;
+        color: #222;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.3s;
+      }
+      .controls .start-btn:hover {
+        background: #5be9f0;
+        transform: translateY(-2px);
+      }
+
+      .instructions {
+        margin-top: 10px;
+        color: #bbb;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1 class="logo">Reflex<span>Duel</span></h1>
+      </header>
+
+      <main>
+        <!-- Reaction Circle -->
+        <div class="ball"></div>
+
+        <!-- Player Cards -->
+        <div class="players">
+          <div class="player-card">
+            <h2>Player 1</h2>
+            <p>Press Key</p>
+            <div class="keycap">S</div>
+            <p>Time</p>
+            <div class="time" id="p1Time">-- ms</div>
+          </div>
+
+          <div class="player-card">
+            <h2>Player 2</h2>
+            <p>Press Key</p>
+            <div class="keycap">L</div>
+            <p>Time</p>
+            <div class="time" id="p2Time">-- ms</div>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div class="display-result hidden"></div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <button class="start-btn">Start Duel</button>
+        </div>
+        <p class="instructions">
+          Test your reflexes. Press Start when you are ready.
+        </p>
+      </main>
+    </div>
+
+    <!-- <script src="script.js"></script> -->
+    <script>
+      let ball = document.querySelector(".ball");
+      let resultDisplay = document.querySelector(".display-result");
+      let startBtn = document.querySelector(".start-btn");
+      let p1TimeEl = document.getElementById("p1Time");
+      let p2TimeEl = document.getElementById("p2Time");
+
+      let gameState = false;
+      let p1ReactionTime;
+      let p2ReactionTime;
+      let ballInitialTime;
+
+      const startDuel = () => {
+        // Reset UI
+        resultDisplay.classList.add("hidden");
+        resultDisplay.innerText = "";
+        p1TimeEl.innerText = "-- ms";
+        p2TimeEl.innerText = "-- ms";
+
+        p1ReactionTime = null;
+        p2ReactionTime = null;
+        gameState = false;
+
+        // Ball starts RED and pulsing
+        ball.style.background = "#ff4d4d";
+        ball.style.boxShadow = "0 0 20px rgba(255, 77, 77, 0.7)";
+        ball.classList.add("loading");
+
+        // Random delay: 2–5 seconds
+        let randomTime = Math.floor(Math.random() * 3000) + 2000;
+        setTimeout(() => {
+          gameState = true;
+          ball.classList.remove("loading");
+          ball.style.background = "#4dff7f"; // green
+          ball.style.boxShadow = "0 0 25px rgba(77, 255, 127, 0.8)";
+          ballInitialTime = performance.now();
+        }, randomTime);
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (gameState) {
+          if (e.key === "s" && !p1ReactionTime) {
+            p1ReactionTime = performance.now() - ballInitialTime;
+            p1TimeEl.innerText = `${p1ReactionTime.toFixed(2)} ms`;
+          }
+          if (e.key === "l" && !p2ReactionTime) {
+            p2ReactionTime = performance.now() - ballInitialTime;
+            p2TimeEl.innerText = `${p2ReactionTime.toFixed(2)} ms`;
+          }
+
+          if (p1ReactionTime && p2ReactionTime) {
+            declareWinner();
+          }
+        } else {
+          if (e.key === "s" || e.key === "l") {
+            resultDisplay.classList.remove("hidden");
+            resultDisplay.innerText = `🚫 False Start! Player ${
+              e.key === "s" ? "1" : "2"
+            } loses.`;
+          }
+        }
+      });
+
+      const declareWinner = () => {
+        let result;
+        if (p1ReactionTime === p2ReactionTime) {
+          result = "🤝 It's a Draw!";
+        } else {
+          result =
+            p1ReactionTime < p2ReactionTime
+              ? "🔥 Player 1 Wins!"
+              : "💨 Player 2 Wins!";
+        }
+        resultDisplay.classList.remove("hidden");
+        resultDisplay.innerText = result;
+        gameState = false;
+      };
+
+      // Start Btn listener
+      startBtn.addEventListener("click", startDuel);
+    </script>
+  </body>
+</html>
