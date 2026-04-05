@@ -175,86 +175,95 @@
     </div>
 
     <!-- <script src="script.js"></script> -->
-    <script>
-      let ball = document.querySelector(".ball");
-      let resultDisplay = document.querySelector(".display-result");
-      let startBtn = document.querySelector(".start-btn");
-      let p1TimeEl = document.getElementById("p1Time");
-      let p2TimeEl = document.getElementById("p2Time");
+<script>
+let ball = document.querySelector(".ball");
+let resultDisplay = document.querySelector(".display-result");
+let startBtn = document.querySelector(".start-btn");
+let p1TimeEl = document.getElementById("p1Time");
+let p2TimeEl = document.getElementById("p2Time");
 
-      let gameState = false;
-      let p1ReactionTime;
-      let p2ReactionTime;
-      let ballInitialTime;
+let gameState = false;
+let p1ReactionTime = null;
+let p2ReactionTime = null;
+let ballInitialTime = null;
 
-      const startDuel = () => {
-        // Reset UI
-        resultDisplay.classList.add("hidden");
-        resultDisplay.innerText = "";
-        p1TimeEl.innerText = "-- ms";
-        p2TimeEl.innerText = "-- ms";
+const startDuel = () => {
+  // Reset UI
+  resultDisplay.classList.add("hidden");
+  resultDisplay.innerText = "";
+  p1TimeEl.innerText = "-- ms";
+  p2TimeEl.innerText = "-- ms";
 
-        p1ReactionTime = null;
-        p2ReactionTime = null;
-        gameState = false;
+  p1ReactionTime = null;
+  p2ReactionTime = null;
+  gameState = false;
 
-        // Ball starts RED and pulsing
-        ball.style.background = "#ff4d4d";
-        ball.style.boxShadow = "0 0 20px rgba(255, 77, 77, 0.7)";
-        ball.classList.add("loading");
+  // Ball red loading
+  ball.style.background = "#ff4d4d";
+  ball.style.boxShadow = "0 0 20px rgba(255, 77, 77, 0.7)";
+  ball.classList.add("loading");
 
-        // Random delay: 2–5 seconds
-        let randomTime = Math.floor(Math.random() * 3000) + 2000;
-        setTimeout(() => {
-          gameState = true;
-          ball.classList.remove("loading");
-          ball.style.background = "#4dff7f"; // green
-          ball.style.boxShadow = "0 0 25px rgba(77, 255, 127, 0.8)";
-          ballInitialTime = performance.now();
-        }, randomTime);
-      };
+  let randomTime = Math.floor(Math.random() * 3000) + 2000;
 
-      document.addEventListener("keydown", (e) => {
-        if (gameState) {
-          if (e.key === "s" && !p1ReactionTime) {
-            p1ReactionTime = performance.now() - ballInitialTime;
-            p1TimeEl.innerText = `${p1ReactionTime.toFixed(2)} ms`;
-          }
-          if (e.key === "l" && !p2ReactionTime) {
-            p2ReactionTime = performance.now() - ballInitialTime;
-            p2TimeEl.innerText = `${p2ReactionTime.toFixed(2)} ms`;
-          }
+  setTimeout(() => {
+    gameState = true;
+    ball.classList.remove("loading");
+    ball.style.background = "#4dff7f";
+    ball.style.boxShadow = "0 0 25px rgba(77, 255, 127, 0.8)";
+    ballInitialTime = performance.now();
+  }, randomTime);
+};
 
-          if (p1ReactionTime && p2ReactionTime) {
-            declareWinner();
-          }
-        } else {
-          if (e.key === "s" || e.key === "l") {
-            resultDisplay.classList.remove("hidden");
-            resultDisplay.innerText = `🚫 False Start! Player ${
-              e.key === "s" ? "1" : "2"
-            } loses.`;
-          }
-        }
-      });
+document.addEventListener("keydown", (e) => {
+  const key = e.key.toLowerCase();
 
-      const declareWinner = () => {
-        let result;
-        if (p1ReactionTime === p2ReactionTime) {
-          result = "🤝 It's a Draw!";
-        } else {
-          result =
-            p1ReactionTime < p2ReactionTime
-              ? "🔥 Player 1 Wins!"
-              : "💨 Player 2 Wins!";
-        }
-        resultDisplay.classList.remove("hidden");
-        resultDisplay.innerText = result;
-        gameState = false;
-      };
+  // FALSE START
+  if (!gameState && (key === "s" || key === "l")) {
+    resultDisplay.classList.remove("hidden");
+    resultDisplay.innerText = `🚫 False Start! Player ${
+      key === "s" ? "1" : "2"
+    } loses.`;
+    return;
+  }
 
-      // Start Btn listener
-      startBtn.addEventListener("click", startDuel);
-    </script>
+  if (!gameState) return;
+
+  // Player 1
+  if (key === "s" && p1ReactionTime === null) {
+    p1ReactionTime = performance.now() - ballInitialTime;
+    p1TimeEl.innerText = `${p1ReactionTime.toFixed(2)} ms`;
+  }
+
+  // Player 2
+  if (key === "l" && p2ReactionTime === null) {
+    p2ReactionTime = performance.now() - ballInitialTime;
+    p2TimeEl.innerText = `${p2ReactionTime.toFixed(2)} ms`;
+  }
+
+  // Both finished
+  if (p1ReactionTime !== null && p2ReactionTime !== null) {
+    declareWinner();
+  }
+});
+
+const declareWinner = () => {
+  let result;
+
+  if (Math.abs(p1ReactionTime - p2ReactionTime) < 1) {
+    result = "🤝 It's a Draw!";
+  } else {
+    result =
+      p1ReactionTime < p2ReactionTime
+        ? "🔥 Player 1 Wins!"
+        : "💨 Player 2 Wins!";
+  }
+
+  resultDisplay.classList.remove("hidden");
+  resultDisplay.innerText = result;
+  gameState = false;
+};
+
+startBtn.addEventListener("click", startDuel);
+</script>
   </body>
 </html>
